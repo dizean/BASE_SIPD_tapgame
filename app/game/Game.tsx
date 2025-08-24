@@ -17,7 +17,6 @@ export default function Game() {
   const [mounted, setMounted] = useState(false);
   const [taps, setTaps] = useState<number | null>(null);
   const [bubbles, setBubbles] = useState<Bubble[]>([]);
-
   const localTapBuffer = useRef<number>(0);
   const tapTimeout = useRef<NodeJS.Timeout | null>(null);
 
@@ -90,14 +89,13 @@ export default function Game() {
     handleTap();
   };
 
-  // Show loading until taps are fetched
   if (!mounted || taps === null) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-blue-50">
-        <p className="text-blue-800">Loading taps...</p>
-      </div>
-    );
-  }
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-blue-50">
+      <p className="text-blue-800">Loading game...</p>
+    </div>
+  );
+}
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen gap-10 px-4 md:px-0 bg-gradient-to-br from-blue-100 via-white to-blue-50 relative overflow-hidden">

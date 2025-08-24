@@ -4,10 +4,7 @@ import { useEffect, useState } from "react";
 import { Contract, BrowserProvider } from "ethers";
 import { rewardContractAbi, rewardContractAddress } from "@/config/Rewards";
 
-type Goal = {
-  id: number;
-  target_taps: number;
-};
+type Goal = { id: number; target_taps: number };
 
 interface EthereumProvider {
   request: (args: { method: string; params?: unknown[] | object }) => Promise<unknown>;
@@ -21,21 +18,9 @@ export default function Goal({ currentTaps }: { currentTaps: number }) {
   const [showModal, setShowModal] = useState(false);
   const [claimedIds, setClaimedIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
+  const [checkingClaims, setCheckingClaims] = useState(true); // new state
 
-  const fetchClaimedGoals = async (provider: BrowserProvider, signerAddress: string) => {
-    if (!rewardContractAddress) return;
-
-    const signer = provider.getSigner();
-    const contract = new Contract(rewardContractAddress, rewardContractAbi, await signer);
-
-    const claimed: number[] = [];
-    for (const goal of goals) {
-      const isClaimed = await contract.goalClaimed(signerAddress, goal.id);
-      if (isClaimed) claimed.push(goal.id);
-    }
-    setClaimedIds(claimed);
-  };
-
+  // fetch goals from backend
   useEffect(() => {
     const fetchGoals = async () => {
       try {
@@ -49,19 +34,46 @@ export default function Goal({ currentTaps }: { currentTaps: number }) {
     fetchGoals();
   }, []);
 
+  // fetch claimed goals from contract
+  const fetchClaimedGoals = async (provider: BrowserProvider, signerAddress: string) => {
+    if (!rewardContractAddress) return [];
+
+    const signer = provider.getSigner();
+    const contract = new Contract(rewardContractAddress, rewardContractAbi, await signer);
+    const claimed: number[] = [];
+
+    for (const goal of goals) {
+      const isClaimed = await contract.goalClaimed(signerAddress, goal.id);
+      if (isClaimed) claimed.push(goal.id);
+    }
+    return claimed;
+  };
+
+  // init claimed goals when goals load
   useEffect(() => {
     const initClaimed = async () => {
       if (!window.ethereum || goals.length === 0) return;
-      const provider = new BrowserProvider(window.ethereum as unknown as EthereumProvider);
-      const signer = await provider.getSigner();
-      const address = await signer.getAddress();
-      await fetchClaimedGoals(provider, address);
+
+      setCheckingClaims(true);
+      try {
+        const provider = new BrowserProvider(window.ethereum as unknown as EthereumProvider);
+        const signer = await provider.getSigner();
+        const address = await signer.getAddress();
+
+        const claimed = await fetchClaimedGoals(provider, address);
+        setClaimedIds(claimed);
+      } catch (err) {
+        console.error("Error fetching claimed goals:", err);
+      } finally {
+        setCheckingClaims(false);
+      }
     };
     initClaimed();
   }, [goals]);
 
+  // update current goal and decide modal
   useEffect(() => {
-    if (goals.length === 0) return;
+    if (goals.length === 0 || checkingClaims) return;
 
     const eligibleGoals = goals.filter(g => currentTaps >= g.target_taps);
     const claimableGoals = eligibleGoals.filter(g => !claimedIds.includes(g.id));
@@ -75,20 +87,20 @@ export default function Goal({ currentTaps }: { currentTaps: number }) {
       setCurrentGoal(nextGoal);
       setShowModal(false);
     }
-  }, [goals, currentTaps, claimedIds]);
+  }, [goals, currentTaps, claimedIds, checkingClaims]);
 
   const handleClaim = async () => {
     if (!window.ethereum || !currentGoal || !rewardContractAddress) return;
 
+    setLoading(true);
     try {
-      setLoading(true);
       const provider = new BrowserProvider(window.ethereum as unknown as EthereumProvider);
       const signer = await provider.getSigner();
       const contract = new Contract(rewardContractAddress, rewardContractAbi, signer);
 
-      // Check again if already claimed to prevent double claim
       const address = await signer.getAddress();
       const alreadyClaimed = await contract.goalClaimed(address, currentGoal.id);
+
       if (alreadyClaimed) {
         console.log(`Goal ${currentGoal.id} already claimed.`);
         setClaimedIds(prev => [...prev, currentGoal.id]);
@@ -99,7 +111,6 @@ export default function Goal({ currentTaps }: { currentTaps: number }) {
       const tx = await contract.claimGoal(currentGoal.id);
       await tx.wait();
 
-      console.log(`Reward for goal ${currentGoal.id} claimed!`);
       setClaimedIds(prev => [...prev, currentGoal.id]);
       setShowModal(false);
     } catch (err) {
@@ -109,7 +120,9 @@ export default function Goal({ currentTaps }: { currentTaps: number }) {
     }
   };
 
-  if (!currentGoal) return <p className="text-gray-500">Loading goals...</p>;
+  if (!currentGoal || checkingClaims) {
+    return <p className="text-gray-500">Loading goals...</p>;
+  }
 
   const progress = Math.min((currentTaps / currentGoal.target_taps) * 100, 100);
 
