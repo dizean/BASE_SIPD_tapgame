@@ -1,3 +1,16 @@
+https://base-bubbly.vercel.app/ -> LINK FOR GAME
+
+HOW TO PLAY
+
+1. switch to or add base sepolia testnet network
+2. import token -> 0xdb9f64333609E01D3ae9eBD4BAD9b0cBFbe0F03f
+3. go to coinbase developer platform
+4. go to faucet and choose base sepolia and token ETH.
+5. Copy Paste Wallet Address until you ge .001 worth of ETH
+6. No ETH means no fees to use, No Play
+
+
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-onchain`]().
 
 
