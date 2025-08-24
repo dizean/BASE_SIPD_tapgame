@@ -3,12 +3,13 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const { walletAddress } = body;
+  const { walletAddress, taps } = body; 
 
-  if (!walletAddress) {
-    return NextResponse.json({ error: "No wallet address" }, { status: 400 });
+  if (!walletAddress || !taps) {
+    return NextResponse.json({ error: "Missing wallet address or taps" }, { status: 400 });
   }
 
+  // Ensure player exists
   const { data, error } = await supabase
     .from("player")
     .upsert({ wallet_address: walletAddress }, { onConflict: "wallet_address" })
@@ -19,11 +20,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error }, { status: 500 });
   }
 
-  // Increment tap count
+  // Increment tap count by number of taps sent
   const { data: updated, error: updateError } = await supabase
     .from("player")
     .update({
-      tap_count: data.tap_count + 1,
+      tap_count: (data.tap_count || 0) + taps,
       last_tap: new Date().toISOString(),
     })
     .eq("wallet_address", walletAddress)
