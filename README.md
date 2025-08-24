@@ -40,6 +40,16 @@ To learn more about Next.js, see the [Next.js documentation](https://nextjs.org/
 FOLLOW THROUGH
 
 
+HOW TO PLAY
+
+1. switch to or add base sepolia testnet network
+2. import token -> 0xdb9f64333609E01D3ae9eBD4BAD9b0cBFbe0F03f
+3. go to coinbase developer platform
+4. go to faucet and choose base sepolia and token ETH.
+5. Copy Paste Wallet Address until you ge .001 worth of ETH
+6. No ETH means fees, No Play
+
+
 CREATING BASE CHAIN APP
 mkdir contracts && cd contracts
 curl -L https://foundry.paradigm.xyz | bash
