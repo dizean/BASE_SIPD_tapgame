@@ -15,6 +15,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <title>Home - Tap Game</title>
+        <link rel="icon" href="/favicon.ico" />
+      </head>
       <body className="bg-background dark">
         <Providers>{children}</Providers>
       </body>
