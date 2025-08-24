@@ -73,3 +73,26 @@ cd ~/.foundry/keystores
 ls - if theres a deployer
 rm deployer
 go back to contracts folder -> go back to PRIVATE KEY
+
+
+forge create ./src/SIPDen.sol:SIPDToken \
+  --rpc-url $BASE_SEPOLIA_RPC_URL \
+  --account deployer \
+  --broadcast \
+  --constructor-args 1000000 $WALLET_ADDRESS
+
+
+forge create ./src/Tap.sol:Tap \
+  --rpc-url $BASE_SEPOLIA_RPC_URL \
+  --account deployer \
+  --broadcast \
+  --constructor-args 0xeE308fd9DF8590d255EC1C85D612ea30582fC541 0xB53731e7c9b839a3d9c51B020375FB334f56971E
+
+
+OpenZeppelin -> forge install OpenZeppelin/openzeppelin-contracts
+
+forge script script/DeployTap.s.sol:DeployTap \
+  --rpc-url $BASE_SEPOLIA_RPC_URL \
+  --broadcast \
+  --verify \
+  -vvvv
