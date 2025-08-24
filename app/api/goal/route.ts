@@ -12,6 +12,7 @@ export async function GET() {
     if (error) throw error;
 
     return NextResponse.json({ goals: data });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     console.error("Error fetching goals:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
